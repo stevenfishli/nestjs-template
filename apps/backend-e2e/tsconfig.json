@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "out-tsc/@pace-monorepo/backend-e2e",
+    "esModuleInterop": true,
+    "noUnusedLocals": false,
+    "noImplicitAny": false
+  },
+  "include": [
+    "jest.config.ts",
+    "src/**/*.ts"
+, "src/backend/backend.spec.ts.bak", "src/backend/modules/user.identity/fe/account.e2e-spec.ts.bak", "src/backend/backend.spec.ts.bak"  ],
+  "references": []
+}

@@ -1,0 +1,60 @@
+// Prisma schema for user_wallet_db
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_USER_WALLET_URL")
+  extensions = [uuidOssp(map: "uuid-ossp")]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/user-wallet-db-client-types"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  createdOn DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_on")
+  createdBy String?  @db.Uuid @map("created_by")
+  updatedOn DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_on")
+  updatedBy String?  @db.Uuid @map("updated_by")
+  tenantId  String   @db.Uuid @map("tenant_id")
+  userId    String   @db.Uuid @map("user_id")
+  currency Currency
+  balance   Decimal  @default(0)
+  bonus    Decimal  @default(0)
+  overflowDebit Decimal  @default(0) @map("overflow_debit")
+
+  @@map("wallet")
+}
+
+//---------------------------------
+// enums
+//---------------------------------
+
+// ISO 4217
+enum Currency {
+  USD
+  THB
+  JPY
+  BDT
+  CNY
+  VND
+  PHP
+  KRW
+  TWD
+  HKD
+  IDR
+  INR
+  MMK
+  // btc
+  BTC
+  BTC_BTC
+  // eth
+  ETH
+  ETH_ERC20
+  // usdt
+  USDT
+  USDT_ERC20
+  USDT_TRC20
+}

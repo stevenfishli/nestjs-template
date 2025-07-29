@@ -1,0 +1,115 @@
+{
+  "name": "@pace-monorepo/backend",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "generate-openapi": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "ts-node ./apps/backend/src/generate-openapi.ts"
+        }
+      },
+      "prisma-generate": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npx prisma generate --schema ./apps/backend/src/utils/prisma/prisma-user-identity-db/schema.prisma && npx prisma generate --schema ./apps/backend/src/utils/prisma/prisma-user-wallet-db/schema.prisma"
+        }
+      },
+      "prisma-db-push": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npx prisma db push --schema ./apps/backend/src/utils/prisma/prisma-user-identity-db/schema.prisma && npx prisma db push --schema ./apps/backend/src/utils/prisma/prisma-user-wallet-db/schema.prisma"
+        }
+      },
+      "prisma-gen-user-identity-migration": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npx prisma migrate dev --name {args.name} --schema ./apps/backend/src/utils/prisma/prisma-user-identity-db/schema.prisma"
+        }
+      },
+      "prisma-gen-user-wallet-migration": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npx prisma migrate dev --name {args.name} --schema ./apps/backend/src/utils/prisma/prisma-user-wallet-db/schema.prisma"
+        }
+      },
+      "prisma-seed": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "ts-node ./apps/backend/src/utils/prisma/prisma-user-identity-db/seed.ts"
+        }
+      },
+      "prisma-deploy": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npx prisma migrate deploy --schema ./apps/backend/src/utils/prisma/prisma-user-identity-db/schema.prisma && npx prisma migrate deploy --schema ./apps/backend/src/utils/prisma/prisma-user-wallet-db/schema.prisma"
+        }
+      },
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "webpack-cli build",
+          "args": [
+            "node-env=production"
+          ]
+        },
+        "configurations": {
+          "development": {
+            "args": [
+              "node-env=development"
+            ]
+          }
+        }
+      },
+      "serve-e2e": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "DOTENV_CONFIG_PATH=apps/backend/.env.e2e npx nx serve backend"
+        }
+      },
+      "serve": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@pace-monorepo/backend:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@pace-monorepo/backend:build:development"
+          },
+          "production": {
+            "buildTarget": "@pace-monorepo/backend:build:production"
+          }
+        }
+      },
+      "test": {
+        "options": {
+          "passWithNoTests": true
+        }
+      },
+      "docker-build": {
+        "dependsOn": [
+          "build"
+        ],
+        "command": "docker build -f apps/backend/Dockerfile . -t pace-monorepo-backend"
+      }
+    }
+  },
+  "dependencies": {
+    "@nestjs/jwt": "^11.0.0",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/express": "^5.0.3"
+  }
+}

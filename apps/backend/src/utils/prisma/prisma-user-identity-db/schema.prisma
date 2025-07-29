@@ -1,0 +1,105 @@
+// Prisma schema for user_identity_db
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_USER_IDENTITY_URL")
+  extensions = [uuidOssp(map: "uuid-ossp"), citext]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/user-identity-db-client-types"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+model User {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdOn DateTime @default(dbgenerated("now()")) @map("created_on") @db.Timestamptz(6)
+  createdBy String?  @map("created_by") @db.Uuid
+  updatedOn DateTime @default(dbgenerated("now()")) @map("updated_on") @db.Timestamptz(6)
+  updatedBy String?  @map("updated_by") @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  type       UserType
+  status     UserStatus
+  username  String   @db.Citext
+  email     String
+  emailConfirmed Boolean @default(false) @map("email_confirmed")
+  phonePrefix String @map("phone_prefix")
+  phone     String
+  phoneConfirmed Boolean @default(false) @map("phone_confirmed")
+  // userGroup UserGroup @map("user_group")
+  // membershipLevel MembershipLevel @map("membership_level")
+  agentId  String? @map("agent_id") @db.Uuid
+  srcFrom  String? @map("src_from")
+  ipFrom   String? @map("ip_from")
+  deviceSrc UserDevice @map("device_src")
+  realName String? @map("real_name")
+  nickname String? @map("nickname")
+  dob      DateTime? @map("dob") @db.Date
+  isPersonalInfoCompleted Boolean? @map("is_personal_info_completed")
+  latestLoginOn DateTime? @map("latest_login_on") @db.Timestamptz(6)
+  latestLoginIp String? @map("latest_login_ip")
+  // personalNameInfo PersonalNameInfo? @map("personal_name_info")
+  // profile UserProfile? @map("profile")
+  isValid Boolean? @map("is_valid")
+
+  // relations
+  players Player[]
+
+  // indexes
+  @@index([tenantId, type, createdOn], name: "idx_tenant_type_created_on")
+  @@unique([tenantId, username], name: "uq_tenant_username")
+
+  @@map("user")
+}
+
+model Player {
+  id     BigInt  @id @default(autoincrement())
+  userId String  @db.Uuid @unique @map("user_id")
+  user   User    @relation(fields: [userId], references: [id])
+
+  @@map("player")
+}
+model UserCredential {
+  userId                 String   @id @map("user_id") @db.Uuid
+  createdOn DateTime @default(dbgenerated("now()")) @map("created_on") @db.Timestamptz(6)
+  createdBy String?  @map("created_by") @db.Uuid
+  updatedOn DateTime @default(dbgenerated("now()")) @map("updated_on") @db.Timestamptz(6)
+  updatedBy String?  @map("updated_by") @db.Uuid
+  passwordHash           String   @map("password_hash")
+  withdrawalPasswordHash String?  @map("withdrawal_password_hash")
+  accessFailedCount      Int      @default(0) @map("access_failed_count")
+
+  @@map("user_credential")
+}
+
+//---------------------------------
+// enums
+//---------------------------------
+
+enum UserType {
+  MEMBER
+  BO_ADMIN
+  BO_AGENT
+  CRM_ADMIN
+  BO_SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+  DELETED
+}
+
+enum UserDevice {
+  UNKNOWN
+  WINDOWS
+  MAC
+  LINUX
+  CHROME_OS
+  IOS_H5
+  IOS_APP
+  ANDROID_H5
+  ANDROID_APP
+}
